@@ -40,13 +40,7 @@ pip install opencv-python mediapipe
 ### Running the Application
 
 ```bash
-python smallcode.py
-```
-
-or
-
-```bash
-python app.py
+python main.py
 ```
 
 ### Controls
@@ -59,7 +53,6 @@ python app.py
 
 ```
 ├── main.py          # Main application with all mudra detection logic
-├── app.py               # Alternative implementation
 └── README.md            # This file
 ```
 
@@ -166,3 +159,4 @@ This project is open-source and available for educational and research purposes.
 ---
 
 **Note**: This system is designed for educational and artistic purposes. Detection accuracy may vary based on camera quality, lighting conditions, and individual hand characteristics.
+
