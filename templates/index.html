@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mudra Detection System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="header-content">
+                <h1>🙏 Mudra Detection System</h1>
+                <p class="subtitle">Real-time Classical Indian Dance Mudra Recognition</p>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Video Feed Section -->
+            <div class="video-section">
+                <div class="video-container">
+                    <img src="{{ url_for('video_feed') }}" alt="Video Feed" class="video-feed">
+                </div>
+            </div>
+
+            <!-- Status Section -->
+            <div class="status-section">
+                <div class="status-card">
+                    <h2>Current Mudra</h2>
+                    <div class="mudra-display" id="mudra-display">
+                        <div class="mudra-icon">🤚</div>
+                        <div class="mudra-name" id="mudra-name">Waiting for detection...</div>
+                        <div class="mudra-status" id="mudra-status">
+                            <span class="status-dot"></span>
+                            <span id="status-text">Ready</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics -->
+                <div class="stats-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="margin: 0;">Session Stats</h3>
+                        <button onclick="resetStats()" class="reset-btn" title="Reset Statistics">
+                            🔄 Reset
+                        </button>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="detection-count">0</div>
+                            <div class="stat-label">Detections</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="unique-mudras">0</div>
+                            <div class="stat-label">Unique Mudras</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="session-time">00:00</div>
+                            <div class="stat-label">Session Time</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; padding: 10px; background: rgba(102, 126, 234, 0.1); border-radius: 8px;">
+                        <small style="color: #667eea; display: block; text-align: center;">
+                            💡 Mudras must be stable for 3 frames to count
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Mudra History -->
+                <div class="history-card">
+                    <h3>Recent Detections</h3>
+                    <div class="history-list" id="history-list">
+                        <p class="empty-state">No mudras detected yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Supported Mudras Section -->
+        <div class="mudras-section">
+            <h2>Supported Mudras</h2>
+            <div class="mudras-grid" id="mudras-grid">
+                <p class="loading">Loading mudras...</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>Built with ❤️ using MediaPipe, OpenCV & Flask</p>
+            <p class="footer-links">
+                <a href="#" onclick="toggleInfo()">About</a> • 
+                <a href="#" onclick="toggleHelp()">Help</a> • 
+                <a href="https://github.com/Aravindraj0007/mudra-identification" target="_blank">GitHub</a>
+            </p>
+        </footer>
+    </div>
+
+    <!-- Info Modal -->
+    <div class="modal" id="info-modal">
+        <div class="modal-content">
+            <span class="close" onclick="toggleInfo()">&times;</span>
+            <h2>About Mudra Detection</h2>
+            <p>This system uses computer vision and machine learning to recognize classical Indian dance mudras in real-time. It tracks hand landmarks and applies geometric analysis to identify specific hand gestures.</p>
+            <h3>Features:</h3>
+            <ul>
+                <li>Real-time mudra detection</li>
+                <li>25+ classical mudras supported</li>
+                <li>Hand landmark visualization</li>
+                <li>Session statistics tracking</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal" id="help-modal">
+        <div class="modal-content">
+            <span class="close" onclick="toggleHelp()">&times;</span>
+            <h2>How to Use</h2>
+            <ol>
+                <li><strong>Allow Camera Access:</strong> Grant camera permissions when prompted</li>
+                <li><strong>Position Your Hand:</strong> Place your hand clearly in front of the camera</li>
+                <li><strong>Form a Mudra:</strong> Make a mudra gesture with proper finger positioning</li>
+                <li><strong>View Results:</strong> The detected mudra name will appear on screen</li>
+            </ol>
+            <h3>Tips for Best Results:</h3>
+            <ul>
+                <li>Use good lighting</li>
+                <li>Keep hand centered and at 30-60cm from camera</li>
+                <li>Avoid cluttered backgrounds</li>
+                <li>Hold the mudra steadily for a moment</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
