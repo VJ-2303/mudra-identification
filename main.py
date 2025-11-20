@@ -909,84 +909,93 @@ mudra_functions = {
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 
-cap = cv2.VideoCapture(0)
-if not cap.isOpened():
-    print("Error: Could not open webcam.")
-    exit()
 
-with mp_hands.Hands(
-        static_image_mode=False,
-        max_num_hands=1,
-        min_detection_confidence=0.7,
-        min_tracking_confidence=0.7) as hands:
+def main():
+    """Main function to run the desktop OpenCV version"""
+    global DEBUG
+    
+    cap = cv2.VideoCapture(CAMERA_INDEX)
+    if not cap.isOpened():
+        print("Error: Could not open webcam.")
+        exit()
 
-    while cap.isOpened():
-        success, frame = cap.read()
-        if not success:
-            print("Ignoring empty camera frame.")
-            continue
+    with mp_hands.Hands(
+            static_image_mode=False,
+            max_num_hands=1,
+            min_detection_confidence=0.7,
+            min_tracking_confidence=0.7) as hands:
 
-        frame = cv2.flip(frame, 1)
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame_rgb.flags.writeable = False
-        results = hands.process(frame_rgb)
-        frame_rgb.flags.writeable = True
-        frame = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
+        while cap.isOpened():
+            success, frame = cap.read()
+            if not success:
+                print("Ignoring empty camera frame.")
+                continue
 
-        mudra_status = "No Mudra Detected"
-        debug_text = ""
-        text_color = (0, 0, 255)
+            frame = cv2.flip(frame, 1)
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame_rgb.flags.writeable = False
+            results = hands.process(frame_rgb)
+            frame_rgb.flags.writeable = True
+            frame = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
 
-        if results.multi_hand_landmarks:
-            hand_landmarks = results.multi_hand_landmarks[0]
-            mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+            mudra_status = "No Mudra Detected"
+            debug_text = ""
+            text_color = (0, 0, 255)
 
-            landmarks = hand_landmarks.landmark
-            dist_table, ndist_table, scale_ref = compute_distance_tables(landmarks)
+            if results.multi_hand_landmarks:
+                hand_landmarks = results.multi_hand_landmarks[0]
+                mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
-            for name, func in mudra_functions.items():
-                try:
-                    detected = func(landmarks, dist_table, ndist_table, scale_ref)
-                except Exception as e:
-                    detected = False
-                    if DEBUG:
-                        debug_text = f"{name} error: {str(e)[:30]}"
-                if detected:
-                    mudra_status = f"{name} Detected"
-                    text_color = (0, 255, 0)
-                    if DEBUG:
-                        debug_text = f"{name} | scale={scale_ref:.3f}"
-                    break
+                landmarks = hand_landmarks.landmark
+                dist_table, ndist_table, scale_ref = compute_distance_tables(landmarks)
 
-        cv2.putText(
-            frame,
-            mudra_status,
-            (40, 70),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            1.2,
-            text_color,
-            3,
-            cv2.LINE_AA,
-        )
+                for name, func in mudra_functions.items():
+                    try:
+                        detected = func(landmarks, dist_table, ndist_table, scale_ref)
+                    except Exception as e:
+                        detected = False
+                        if DEBUG:
+                            debug_text = f"{name} error: {str(e)[:30]}"
+                    if detected:
+                        mudra_status = f"{name} Detected"
+                        text_color = (0, 255, 0)
+                        if DEBUG:
+                            debug_text = f"{name} | scale={scale_ref:.3f}"
+                        break
 
-        if DEBUG and debug_text:
             cv2.putText(
                 frame,
-                debug_text,
-                (40, 110),
+                mudra_status,
+                (40, 70),
                 cv2.FONT_HERSHEY_SIMPLEX,
-                0.6,
-                (255, 255, 0),
-                2,
+                1.2,
+                text_color,
+                3,
                 cv2.LINE_AA,
             )
 
-        cv2.imshow("Mudra Detector", frame)
-        key = cv2.waitKey(5) & 0xFF
-        if key == ord('q'):
-            break
-        if key == ord('d'):
-            DEBUG = not DEBUG
+            if DEBUG and debug_text:
+                cv2.putText(
+                    frame,
+                    debug_text,
+                    (40, 110),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.6,
+                    (255, 255, 0),
+                    2,
+                    cv2.LINE_AA,
+                )
 
-cap.release()
-cv2.destroyAllWindows()
+            cv2.imshow("Mudra Detector", frame)
+            key = cv2.waitKey(5) & 0xFF
+            if key == ord('q'):
+                break
+            if key == ord('d'):
+                DEBUG = not DEBUG
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+
+if __name__ == '__main__':
+    main()
