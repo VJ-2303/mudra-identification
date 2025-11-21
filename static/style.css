@@ -152,6 +152,37 @@ header h1 {
     color: #ef4444;
 }
 
+.mudra-description {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 10px 20px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    line-height: 1.5;
+    font-style: italic;
+    max-height: 80px;
+    overflow-y: auto;
+}
+
+.details-btn {
+    margin-top: 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.details-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
 @keyframes slideIn {
     from {
         opacity: 0;
@@ -460,6 +491,55 @@ footer p {
     background: #764ba2;
 }
 
+/* Mudra Detail Modal */
+.mudra-modal-content {
+    max-width: 900px;
+    width: 90%;
+}
+
+.mudra-detail-container {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.mudra-detail-image img {
+    width: 100%;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.mudra-detail-info h2 {
+    color: #667eea;
+    margin-bottom: 15px;
+}
+
+.mudra-meaning,
+.mudra-detail-desc,
+.mudra-usage {
+    margin-bottom: 20px;
+}
+
+.mudra-meaning strong,
+.mudra-detail-desc strong,
+.mudra-usage strong {
+    color: #764ba2;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.mudra-detail-desc p,
+.mudra-usage p {
+    line-height: 1.6;
+    color: #555;
+}
+
+.mudra-meaning span {
+    color: #667eea;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     header h1 {
@@ -480,5 +560,10 @@ footer p {
     
     .mudra-name {
         font-size: 1.2rem;
+    }
+    
+    .mudra-detail-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
     }
 }

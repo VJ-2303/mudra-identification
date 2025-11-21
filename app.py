@@ -1,16 +1,20 @@
-from flask import Flask, render_template, Response, jsonify
+from flask import Flask, render_template, Response, jsonify, send_from_directory
 import cv2
 import mediapipe as mp
 import math
 import threading
 import time
 import sys
+import os
 
 # Import all the mudra detection functions from main.py
 # Import only the functions, not the module-level objects
 import main
 compute_distance_tables = main.compute_distance_tables
 mudra_functions = main.mudra_functions
+
+# Import mudra information database
+from mudra_info import get_mudra_info, get_all_mudras
 
 # Create our own MediaPipe instances for the web app
 mp_hands = mp.solutions.hands
@@ -161,6 +165,20 @@ def get_mudra_list():
         'mudras': list(mudra_functions.keys()),
         'count': len(mudra_functions)
     })
+
+
+@app.route('/mudra_info/<mudra_name>')
+def mudra_info(mudra_name):
+    """API endpoint to get detailed information about a specific mudra"""
+    info = get_mudra_info(mudra_name)
+    return jsonify(info)
+
+
+@app.route('/images/<filename>')
+def serve_image(filename):
+    """Serve mudra images from the images folder"""
+    images_dir = os.path.join(os.path.dirname(__file__), 'images')
+    return send_from_directory(images_dir, filename)
 
 
 def cleanup():

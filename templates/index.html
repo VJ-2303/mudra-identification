@@ -35,10 +35,14 @@
                     <div class="mudra-display" id="mudra-display">
                         <div class="mudra-icon">🤚</div>
                         <div class="mudra-name" id="mudra-name">Waiting for detection...</div>
+                        <div class="mudra-description" id="mudra-description"></div>
                         <div class="mudra-status" id="mudra-status">
                             <span class="status-dot"></span>
                             <span id="status-text">Ready</span>
                         </div>
+                        <button onclick="showCurrentMudraDetails()" id="details-btn" class="details-btn" style="display: none;">
+                            📖 View Details
+                        </button>
                     </div>
                 </div>
 
@@ -134,6 +138,32 @@
                 <li>Avoid cluttered backgrounds</li>
                 <li>Hold the mudra steadily for a moment</li>
             </ul>
+        </div>
+    </div>
+
+    <!-- Mudra Details Modal -->
+    <div class="modal" id="mudra-detail-modal">
+        <div class="modal-content mudra-modal-content">
+            <span class="close" onclick="closeMudraDetails()">&times;</span>
+            <div class="mudra-detail-container">
+                <div class="mudra-detail-image">
+                    <img id="modal-mudra-image" src="" alt="Mudra" style="max-width: 100%; border-radius: 10px;">
+                </div>
+                <div class="mudra-detail-info">
+                    <h2 id="modal-mudra-name">Mudra Name</h2>
+                    <div class="mudra-meaning">
+                        <strong>Meaning:</strong> <span id="modal-mudra-meaning"></span>
+                    </div>
+                    <div class="mudra-detail-desc">
+                        <strong>Description:</strong>
+                        <p id="modal-mudra-description"></p>
+                    </div>
+                    <div class="mudra-usage">
+                        <strong>Usage in Dance:</strong>
+                        <p id="modal-mudra-usage"></p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

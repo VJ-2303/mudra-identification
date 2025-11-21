@@ -10,6 +10,7 @@ let isUpdating = false;  // Prevent concurrent updates
 let stableFrames = 0;
 let requiredStableFrames = 3;  // Mudra must be stable for 3 frames to count
 let lastDetectedMudra = null;
+let currentMudraInfo = null;  // Store current mudra information
 
 // Update current mudra display - optimized with stability check
 function updateMudraDisplay() {
@@ -43,11 +44,18 @@ function updateMudraDisplay() {
             if (mudraName === "No Mudra Detected") {
                 mudraNameElement.className = 'mudra-name no-detection';
                 statusText.textContent = 'Waiting...';
+                document.getElementById('mudra-description').textContent = '';
+                document.getElementById('details-btn').style.display = 'none';
             } else {
                 mudraNameElement.className = 'mudra-name detected';
                 
                 // Update stability indicator
                 updateStabilityIndicator();
+                
+                // Fetch mudra information when detected
+                if (stableFrames === requiredStableFrames && mudraName !== lastDetectedMudra) {
+                    fetchMudraInfo(mudraName);
+                }
                 
                 // Only count as a NEW detection if:
                 // 1. Mudra is stable (seen for required frames)
@@ -163,6 +171,60 @@ function highlightMudra(mudraName) {
     });
 }
 
+// Fetch mudra information
+function fetchMudraInfo(mudraName) {
+    fetch(`/mudra_info/${encodeURIComponent(mudraName)}`)
+        .then(response => response.json())
+        .then(info => {
+            currentMudraInfo = info;
+            
+            // Update description in the status card
+            const descElement = document.getElementById('mudra-description');
+            descElement.textContent = info.description;
+            
+            // Show details button
+            document.getElementById('details-btn').style.display = 'inline-block';
+        })
+        .catch(error => {
+            console.error('Error fetching mudra info:', error);
+        });
+}
+
+// Show current mudra details in modal
+function showCurrentMudraDetails() {
+    if (currentMudraInfo && currentMudra !== "No Mudra Detected") {
+        showMudraDetails(currentMudra, currentMudraInfo);
+    }
+}
+
+// Show mudra details modal
+function showMudraDetails(mudraName, info) {
+    const modal = document.getElementById('mudra-detail-modal');
+    
+    // Update modal content
+    document.getElementById('modal-mudra-name').textContent = mudraName;
+    document.getElementById('modal-mudra-meaning').textContent = info.meaning;
+    document.getElementById('modal-mudra-description').textContent = info.description;
+    document.getElementById('modal-mudra-usage').textContent = info.usage;
+    
+    // Set image
+    const imgElement = document.getElementById('modal-mudra-image');
+    if (info.image) {
+        imgElement.src = `/images/${info.image}`;
+        imgElement.style.display = 'block';
+    } else {
+        imgElement.style.display = 'none';
+    }
+    
+    // Show modal
+    modal.style.display = 'block';
+}
+
+// Close mudra details modal
+function closeMudraDetails() {
+    document.getElementById('mudra-detail-modal').style.display = 'none';
+}
+
 // Load and display all supported mudras
 function loadMudraList() {
     fetch('/mudra_list')
@@ -178,6 +240,20 @@ function loadMudraList() {
                 mudraCard.innerHTML = `
                     <div class="mudra-card-name">${mudra}</div>
                 `;
+                
+                // Make mudra card clickable
+                mudraCard.addEventListener('click', () => {
+                    fetch(`/mudra_info/${encodeURIComponent(mudra)}`)
+                        .then(response => response.json())
+                        .then(info => {
+                            showMudraDetails(mudra, info);
+                        })
+                        .catch(error => {
+                            console.error('Error fetching mudra info:', error);
+                            alert('Unable to load mudra information');
+                        });
+                });
+                
                 mudrasGrid.appendChild(mudraCard);
             });
         })
@@ -203,12 +279,16 @@ function toggleHelp() {
 window.onclick = function(event) {
     const infoModal = document.getElementById('info-modal');
     const helpModal = document.getElementById('help-modal');
+    const mudraModal = document.getElementById('mudra-detail-modal');
     
     if (event.target === infoModal) {
         infoModal.style.display = 'none';
     }
     if (event.target === helpModal) {
         helpModal.style.display = 'none';
+    }
+    if (event.target === mudraModal) {
+        mudraModal.style.display = 'none';
     }
 }
 
@@ -301,3 +381,5 @@ document.addEventListener('keydown', function(event) {
 window.toggleInfo = toggleInfo;
 window.toggleHelp = toggleHelp;
 window.resetStats = resetStats;
+window.showCurrentMudraDetails = showCurrentMudraDetails;
+window.closeMudraDetails = closeMudraDetails;
