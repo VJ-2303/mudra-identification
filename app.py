@@ -1,6 +1,7 @@
 from flask import Flask, render_template, Response, jsonify, send_from_directory
 import cv2
 import mediapipe as mp
+import numpy as np
 import math
 import threading
 import time
@@ -26,6 +27,7 @@ app = Flask(__name__)
 current_mudra = "No Mudra Detected"
 mudra_lock = threading.Lock()
 camera_lock = threading.Lock()
+camera_enabled = True  # Camera on/off state
 
 # Camera configuration
 CAMERA_INDEX = 0  # Change if needed
@@ -48,7 +50,7 @@ def get_camera():
 
 def generate_frames():
     """Generate video frames with mudra detection - optimized version"""
-    global current_mudra
+    global current_mudra, camera_enabled
     
     # Create hands instance once
     hands = mp_hands.Hands(
@@ -63,6 +65,30 @@ def generate_frames():
     
     try:
         while True:
+            # Check if camera is enabled
+            if not camera_enabled:
+                # Generate a black frame with text
+                blank_frame = cv2.imread(os.path.join(os.path.dirname(__file__), 'static', 'camera_off.png'))
+                if blank_frame is None:
+                    # If image doesn't exist, create a black frame with text
+                    blank_frame = 255 * np.ones((480, 640, 3), dtype=np.uint8)
+                    cv2.putText(blank_frame, "Camera Off", (200, 240), 
+                               cv2.FONT_HERSHEY_SIMPLEX, 1.5, (100, 100, 100), 3)
+                    cv2.putText(blank_frame, "Click 'Turn On Camera' to start", (120, 280), 
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.8, (150, 150, 150), 2)
+                
+                # Reset mudra status when camera is off
+                with mudra_lock:
+                    current_mudra = "Camera Off"
+                
+                # Encode and yield the blank frame
+                ret, buffer = cv2.imencode('.jpg', blank_frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
+                frame_bytes = buffer.tobytes()
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+                time.sleep(0.1)
+                continue
+            
             cap = get_camera()
             success, frame = cap.read()
             
@@ -179,6 +205,35 @@ def serve_image(filename):
     """Serve mudra images from the images folder"""
     images_dir = os.path.join(os.path.dirname(__file__), 'images')
     return send_from_directory(images_dir, filename)
+
+
+@app.route('/toggle_camera', methods=['POST'])
+def toggle_camera():
+    """API endpoint to toggle camera on/off"""
+    global camera_enabled, camera
+    
+    camera_enabled = not camera_enabled
+    
+    # Release camera when turning off
+    if not camera_enabled and camera is not None:
+        with camera_lock:
+            camera.release()
+            camera = None
+            print("📹 Camera released")
+    
+    return jsonify({
+        'enabled': camera_enabled,
+        'status': 'on' if camera_enabled else 'off'
+    })
+
+
+@app.route('/camera_status')
+def camera_status():
+    """API endpoint to get current camera status"""
+    return jsonify({
+        'enabled': camera_enabled,
+        'status': 'on' if camera_enabled else 'off'
+    })
 
 
 def cleanup():

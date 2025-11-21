@@ -11,11 +11,12 @@ let stableFrames = 0;
 let requiredStableFrames = 3;  // Mudra must be stable for 3 frames to count
 let lastDetectedMudra = null;
 let currentMudraInfo = null;  // Store current mudra information
+let cameraEnabled = true;  // Camera state
 
 // Update current mudra display - optimized with stability check
 function updateMudraDisplay() {
-    // Skip if already updating
-    if (isUpdating) return;
+    // Skip if already updating or camera is off
+    if (isUpdating || !cameraEnabled) return;
     
     isUpdating = true;
     
@@ -302,6 +303,69 @@ function checkVideoFeedStatus() {
     });
 }
 
+// Toggle camera on/off
+function toggleCamera() {
+    fetch('/toggle_camera', {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        cameraEnabled = data.enabled;
+        updateCameraButton();
+        
+        // Update mudra display when camera is turned off
+        if (!cameraEnabled) {
+            const mudraNameElement = document.getElementById('mudra-name');
+            const statusText = document.getElementById('status-text');
+            
+            mudraNameElement.textContent = 'Camera Off';
+            mudraNameElement.className = 'mudra-name no-detection';
+            statusText.textContent = 'Camera Disabled';
+            document.getElementById('mudra-description').textContent = '';
+            document.getElementById('details-btn').style.display = 'none';
+            
+            // Reset stability tracking
+            stableFrames = 0;
+            lastDetectedMudra = null;
+            currentMudra = "Camera Off";
+        } else {
+            // Reset to waiting state when camera is turned on
+            const mudraNameElement = document.getElementById('mudra-name');
+            const statusText = document.getElementById('status-text');
+            
+            mudraNameElement.textContent = 'Waiting for detection...';
+            mudraNameElement.className = 'mudra-name no-detection';
+            statusText.textContent = 'Ready';
+            currentMudra = "No Mudra Detected";
+        }
+        
+        console.log(`📹 Camera ${cameraEnabled ? 'enabled' : 'disabled'}`);
+    })
+    .catch(error => {
+        console.error('Error toggling camera:', error);
+        alert('Failed to toggle camera');
+    });
+}
+
+// Update camera toggle button appearance
+function updateCameraButton() {
+    const button = document.getElementById('camera-toggle-btn');
+    const icon = document.getElementById('camera-icon');
+    const text = document.getElementById('camera-text');
+    
+    if (cameraEnabled) {
+        button.classList.remove('camera-off');
+        button.classList.add('camera-on');
+        icon.textContent = '📹';
+        text.textContent = 'Camera On';
+    } else {
+        button.classList.remove('camera-on');
+        button.classList.add('camera-off');
+        icon.textContent = '📷';
+        text.textContent = 'Camera Off';
+    }
+}
+
 // Reset statistics
 function resetStats() {
     if (confirm('Are you sure you want to reset all statistics?')) {
@@ -339,6 +403,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check video feed
     checkVideoFeedStatus();
+    
+    // Check initial camera status
+    fetch('/camera_status')
+        .then(response => response.json())
+        .then(data => {
+            cameraEnabled = data.enabled;
+            updateCameraButton();
+        })
+        .catch(error => {
+            console.error('Error checking camera status:', error);
+        });
     
     // Update mudra status every 200ms (5 FPS) - Reduced for better performance
     setInterval(updateMudraDisplay, 200);
@@ -383,3 +458,4 @@ window.toggleHelp = toggleHelp;
 window.resetStats = resetStats;
 window.showCurrentMudraDetails = showCurrentMudraDetails;
 window.closeMudraDetails = closeMudraDetails;
+window.toggleCamera = toggleCamera;
